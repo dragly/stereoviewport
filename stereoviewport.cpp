@@ -375,7 +375,7 @@ QGLAbstractSurface *StereoViewportPrivate::leftEyeSurface(const QRect &originalV
     QRect viewport;
     float adjust = 1.0f;
     switch (stereoType) {
-    case QGLView::Hardware:
+    case StereoViewport::Hardware:
 #if defined(GL_BACK_LEFT) && defined(GL_BACK_RIGHT)
         if (!leftSurface)
         {
@@ -439,7 +439,7 @@ QGLAbstractSurface *StereoViewportPrivate::rightEyeSurface(const QRect &original
     QRect viewport;
     float adjust = 1.0f;
     switch (stereoType) {
-    case QGLView::Hardware:
+    case StereoViewport::Hardware:
 #if defined(GL_BACK_LEFT) && defined(GL_BACK_RIGHT)
         if (!rightSurface) {
             rightSurface = new QGLDrawBufferSurface
@@ -1028,7 +1028,7 @@ void StereoViewport::render(QGLPainter *painter)
     painter->disableEffect();
     QGLSubsurface mainSurface (painter->currentSurface(), originalViewport);
     if (d->showPicking &&
-            d->stereoType == QGLView::RedCyanAnaglyph) {
+            d->stereoType == StereoViewport::RedCyanAnaglyph) {
         // If showing picking, then render normally.  This really
         // only works if we aren't using hardware or double stereo.
         painter->setPicking(true);

@@ -6,6 +6,9 @@ import StereoViewport 1.0
 StereoViewport {
     width: 1000
     height: 800
+    navigation: true
+    focus: true
+    stereoType: StereoViewport.LeftRight
     camera: Camera {
         center: Qt.vector3d(0.0, 0.0, 0.0)
         eye: Qt.vector3d(2.0, 2.0, 2.0)
@@ -18,14 +21,14 @@ StereoViewport {
     Sphere {
         radius: 0.2
         effect: Effect {
-            color: "red"
+            color: "yellow"
         }
     }
     Sphere {
         x: 2
         radius: 0.6
         effect: Effect {
-            color: "blue"
+            color: "yellow"
         }
     }
     Sphere {
@@ -39,7 +42,7 @@ StereoViewport {
         z: 2
         radius: 0.5
         effect: Effect {
-            color: "green"
+            color: "yellow"
         }
     }
 }

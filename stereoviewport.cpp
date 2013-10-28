@@ -49,6 +49,8 @@
 #include "qglsubsurface.h"
 #include "qray3d.h"
 #include "qglframebufferobjectsurface.h"
+#include "qglmaskedsurface_p.h"
+#include "qgldrawbuffersurface_p.h"
 
 //#include "skybox.h"
 
@@ -374,29 +376,23 @@ QGLAbstractSurface *StereoViewportPrivate::leftEyeSurface(const QRect &originalV
     float adjust = 1.0f;
     switch (stereoType) {
     case QGLView::Hardware:
-        viewport = originalViewport;
-        break;
+#if defined(GL_BACK_LEFT) && defined(GL_BACK_RIGHT)
+        if (!leftSurface)
+        {
+            if (renderMode == StereoViewport::BufferedRender)
+                leftSurface = new QGLDrawBufferSurface(mainSurface, GL_BACK_LEFT);
+            else
+                leftSurface = new QGLDrawBufferSurface(mainSurface, GL_FRONT_LEFT);
+        }
+        return leftSurface;
+#endif
     case StereoViewport::RedCyanAnaglyph:
-        viewport = originalViewport;
-        break;
-//    case QGLView::Hardware:
-//#if defined(GL_BACK_LEFT) && defined(GL_BACK_RIGHT)
-//        if (!leftSurface)
-//        {
-//            if (format.swapBehavior() == QSurfaceFormat::DoubleBuffer)
-//                leftSurface = new QGLDrawBufferSurface(&mainSurface, GL_BACK_LEFT);
-//            else
-//                leftSurface = new QGLDrawBufferSurface(&mainSurface, GL_FRONT_LEFT);
-//        }
-//        return leftSurface;
-//#endif
-//    case StereoViewport::RedCyanAnaglyph:
-//        if (!leftSurface) {
-//            leftSurface = new QGLMaskedSurface
-//                    (&mainSurface,
-//                     QGLMaskedSurface::RedMask | QGLMaskedSurface::AlphaMask);
-//        }
-//        return leftSurface;
+        if (!leftSurface) {
+            leftSurface = new QGLMaskedSurface
+                    (mainSurface,
+                     QGLMaskedSurface::RedMask | QGLMaskedSurface::AlphaMask);
+        }
+        return leftSurface;
     case StereoViewport::LeftRight:
         viewport = QRect(originalViewport.x(), originalViewport.y(), originalViewport.width() / 2, originalViewport.height());
         break;
@@ -444,25 +440,21 @@ QGLAbstractSurface *StereoViewportPrivate::rightEyeSurface(const QRect &original
     float adjust = 1.0f;
     switch (stereoType) {
     case QGLView::Hardware:
-        viewport = originalViewport;
+#if defined(GL_BACK_LEFT) && defined(GL_BACK_RIGHT)
+        if (!rightSurface) {
+            rightSurface = new QGLDrawBufferSurface
+                    (mainSurface,
+                     renderMode == StereoViewport::BufferedRender ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
+        }
+        return rightSurface;
+#endif
     case StereoViewport::RedCyanAnaglyph:
-        viewport = originalViewport;
-//    case QGLView::Hardware:
-//#if defined(GL_BACK_LEFT) && defined(GL_BACK_RIGHT)
-//        if (!rightSurface) {
-//            rightSurface = new QGLDrawBufferSurface
-//                    (&mainSurface,
-//                     format.swapBehavior() == QSurfaceFormat::DoubleBuffer ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
-//        }
-//        return rightSurface;
-//#endif
-//    case StereoViewport::RedCyanAnaglyph:
-//        if (!rightSurface) {
-//            rightSurface = new QGLMaskedSurface
-//                    (&mainSurface,
-//                     QGLMaskedSurface::GreenMask | QGLMaskedSurface::BlueMask);
-//        }
-//        return rightSurface;
+        if (!rightSurface) {
+            rightSurface = new QGLMaskedSurface
+                    (mainSurface,
+                     QGLMaskedSurface::GreenMask | QGLMaskedSurface::BlueMask);
+        }
+        return rightSurface;
     case StereoViewport::LeftRight:
         viewport = QRect(originalViewport.width() / 2, 0, originalViewport.width() / 2, originalViewport.height());
         break;

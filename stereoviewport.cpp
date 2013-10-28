@@ -249,9 +249,6 @@ public:
     bool directRenderInitialized;
     bool pickingRenderInitialized;
     QList<PickEvent *> pickEventQueue;
-    StereoViewport::StereoType stereoType;
-    QGLAbstractSurface *leftSurface;
-    QGLAbstractSurface *rightSurface;
 
     // This lock is for the pick event queue itself.  All accesses
     // to that data structure must be guarded by this lock.
@@ -262,6 +259,9 @@ public:
     QMutexMaybeLocker::Lock viewportLock;
 
     QQuickWindow* canvas;
+    StereoViewport::StereoType stereoType;
+    QGLAbstractSurface *leftSurface;
+    QGLAbstractSurface *rightSurface;
 
     void setDefaults(QGLPainter *painter);
     void setRenderSettings(QGLPainter *painter);
@@ -269,6 +269,24 @@ public:
     QGLAbstractSurface *leftEyeSurface(const QRect &size, QGLAbstractSurface *mainSurface);
     QGLAbstractSurface *rightEyeSurface(const QRect &size, QGLAbstractSurface *mainSurface);
 };
+
+class StereoViewportSubsurface : public QGLSubsurface
+{
+public:
+    StereoViewportSubsurface(QGLAbstractSurface *surface, const QRect &region,
+                      float adjust)
+        : QGLSubsurface(surface, region), m_adjust(adjust) {}
+
+    float aspectRatio() const;
+
+private:
+    float m_adjust;
+};
+
+float StereoViewportSubsurface::aspectRatio() const
+{
+    return QGLSubsurface::aspectRatio() * m_adjust;
+}
 
 StereoViewportPrivate::StereoViewportPrivate()
     : picking(false)
@@ -423,10 +441,10 @@ QGLAbstractSurface *StereoViewportPrivate::leftEyeSurface(const QRect &originalV
         break;
     }
     if (!leftSurface) {
-//        if (adjust == 1.0f)
+        if (adjust == 1.0f)
             leftSurface = new QGLSubsurface(mainSurface, viewport);
-//        else
-//            leftSurface = new QGLViewSubsurface(&mainSurface, viewport, adjust);
+        else
+            leftSurface = new StereoViewportSubsurface(mainSurface, viewport, adjust);
     } else {
         static_cast<QGLSubsurface *>(leftSurface)->setRegion(viewport);
     }
@@ -485,10 +503,10 @@ QGLAbstractSurface *StereoViewportPrivate::rightEyeSurface(const QRect &original
         break;
     }
     if (!rightSurface) {
-//        if (adjust == 1.0f)
+        if (adjust == 1.0f)
             rightSurface = new QGLSubsurface(mainSurface, viewport);
-//        else
-//            rightSurface = new QGLViewSubsurface(mainSurface, viewport, adjust);
+        else
+            rightSurface = new StereoViewportSubsurface(mainSurface, viewport, adjust);
     } else {
         static_cast<QGLSubsurface *>(rightSurface)->setRegion(viewport);
     }
